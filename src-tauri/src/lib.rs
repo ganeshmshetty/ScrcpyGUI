@@ -1,14 +1,20 @@
-// Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
-#[tauri::command]
-fn greet(name: &str) -> String {
-    format!("Hello, {}! You've been greeted from Rust!", name)
-}
+use tauri::{command, api::process::Command, Manager};
 
-#[cfg_attr(mobile, tauri::mobile_entry_point)]
-pub fn run() {
-    tauri::Builder::default()
-        .plugin(tauri_plugin_opener::init())
-        .invoke_handler(tauri::generate_handler![greet])
-        .run(tauri::generate_context!())
-        .expect("error while running tauri application");
+#[command]
+async fn launch_scrcpy(app: tauri::AppHandle, args: Vec<String>) -> Result<(), String> {
+    // use the sidecar name (no "./")
+    let (mut rx, _child) = Command::new_sidecar("scrcpy")
+        .map_err(|e| e.to_string())?
+        .args(args)
+        .spawn()
+        .map_err(|e| e.to_string())?;
+
+    tauri::async_runtime::spawn(async move {
+        while let Some(event) = rx.recv().await {
+            // send events to all windows (or pick one)
+            let _ = app.emit_all("scrcpy-event", format!("{:?}", event));
+        }
+    });
+
+    Ok(())
 }

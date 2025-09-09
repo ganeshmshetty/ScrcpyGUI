@@ -19,6 +19,17 @@
     ],
     "security": {
       "csp": null
+    },
+    "allowlist": {
+      "shell": {
+        "sidecar": true,
+        "scope": [
+          {
+            "name": "bin/scrcpy/scrcpy",
+            "sidecar": true
+          }
+        ]
+      }
     }
   },
   "bundle": {
@@ -30,6 +41,9 @@
       "icons/128x128@2x.png",
       "icons/icon.icns",
       "icons/icon.ico"
+    ],
+    "externalBin": [
+      "bin/scrcpy/scrcpy"
     ]
   }
 }
